@@ -257,7 +257,7 @@
 
         const back = document.createElement('div');
         back.className = 'card-face back';
-        back.innerHTML = <div class="emoji">🔮</div>Selecionado!;
+        back.innerHTML = `<div class="emoji">🔮</div>Selecionado!`;
 
         cardInner.appendChild(front);
         cardInner.appendChild(back);
@@ -320,7 +320,7 @@
         estilo = "Tropical Pantera"; link = "https://pantterias.catalog.yampi.io/tropical-pantera";
       }
 
-      resultDiv.innerHTML = ✨ Seu estilo é <strong>${estilo}</strong>!<br><a href="${link}" target="_blank">Ver estilo na loja</a>;
+     resultDiv.innerHTML = `✨ Seu estilo é <strong>${estilo}</strong>!<br><a href="${link}" target="_blank">Ver estilo na loja</a>`;
     }
   </script>
 </body>
