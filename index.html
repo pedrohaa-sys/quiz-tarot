@@ -1,0 +1,329 @@
+ <!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Quiz Tarot ByPantterias</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      background: #fffafc;
+      color: #333;
+    }
+    #quizButton {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      background: linear-gradient(135deg, violet, salmon, cyan);
+      color: white;
+      border: none;
+      border-radius: 50px;
+      padding: 14px 20px;
+      font-weight: bold;
+      cursor: pointer;
+      z-index: 9999;
+      box-shadow: 0 0 10px rgba(0,0,0,0.3);
+    }
+    #quizPopup {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 90%;
+      max-width: 450px;
+      background: #fff6fd;
+      border-radius: 20px;
+      box-shadow: 0 0 30px rgba(0,0,0,0.25);
+      padding: 20px 15px 30px 15px;
+      z-index: 10000;
+    }
+    #closeQuiz {
+      float: right;
+      cursor: pointer;
+      font-size: 20px;
+      background: none;
+      border: none;
+      color: #999;
+      font-weight: bold;
+      margin-bottom: 10px;
+      transition: color 0.3s;
+    }
+    #closeQuiz:hover {
+      color: #666;
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 15px;
+      color: violet;
+    }
+    .cards-container {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+    .card {
+      width: calc(50% - 12px);
+      height: 180px;
+      perspective: 1000px;
+      cursor: pointer;
+      border-radius: 18px;
+      box-shadow: 0 8px 18px rgba(0,0,0,0.15);
+      position: relative;
+    }
+    .card-inner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      text-align: center;
+      transition: transform 0.8s;
+      transform-style: preserve-3d;
+      border-radius: 18px;
+    }
+    .card.flipped .card-inner {
+      transform: rotateY(180deg);
+      cursor: default;
+    }
+    .card-face {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
+      border-radius: 18px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 15px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      font-size: 1.1em;
+      user-select: none;
+    }
+    .front {
+      background: linear-gradient(135deg, #e6caff, #ffe8e0);
+      color: #4a2170;
+      font-weight: 700;
+      box-shadow: 0 8px 20px rgba(147,112,219,0.35);
+    }
+    .back {
+      background: linear-gradient(135deg, violet, salmon, cyan);
+      color: white;
+      transform: rotateY(180deg);
+      font-weight: 700;
+      padding-top: 20px;
+      box-shadow: 0 8px 25px rgba(147,112,219,0.6);
+    }
+    .back .emoji {
+      font-size: 2.5em;
+      margin-bottom: 8px;
+    }
+    #result {
+      margin-top: 25px;
+      text-align: center;
+      font-size: 1.3em;
+      font-weight: bold;
+      color: violet;
+    }
+    #result a {
+      display: inline-block;
+      margin-top: 12px;
+      padding: 12px 20px;
+      background: violet;
+      color: white;
+      border-radius: 12px;
+      text-decoration: none;
+      font-weight: 700;
+      transition: background 0.3s;
+    }
+    #result a:hover {
+      background: #a23cc4;
+    }
+  </style>
+</head>
+<body>
+
+  <button id="quizButton">🔮 Tirar suas cartas</button>
+
+  <div id="quizPopup">
+    <button id="closeQuiz" title="Fechar quiz">✖</button>
+    <h2 id="questionTitle">Pergunta</h2>
+    <div class="cards-container" id="cardsContainer">
+      <!-- Cartas geradas via JS -->
+    </div>
+    <div id="result"></div>
+  </div>
+
+  <script>
+    const quizButton = document.getElementById('quizButton');
+    const quizPopup = document.getElementById('quizPopup');
+    const closeQuiz = document.getElementById('closeQuiz');
+    const questionTitle = document.getElementById('questionTitle');
+    const cardsContainer = document.getElementById('cardsContainer');
+    const resultDiv = document.getElementById('result');
+
+    // Perguntas + respostas com emojis e valores
+    const questions = [
+      {
+        question: "1. Qual sua Essência?",
+        answers: [
+          { text: "🌪️ Sou um furacão de ideias e emoções", value: "furacao" },
+          { text: "🐆 Silenciosa, mas fatal", value: "silenciosa" },
+          { text: "🌸 Doce como flor, firme como raiz", value: "doce" },
+          { text: "🐚 Misteriosa como o fundo do mar", value: "misteriosa" },
+        ]
+      },
+      {
+        question: "2. O que você busca?",
+        answers: [
+          { text: "💎 Brilhar sem pedir licença", value: "brilhar" },
+          { text: "🧿 Me proteger e ser verdadeira", value: "protecao" },
+          { text: "🐝 Encantar e atrair", value: "encantar" },
+          { text: "🔥 Ser livre e causar", value: "livre" },
+        ]
+      },
+      {
+        question: "3. Como você se expressa?",
+        answers: [
+          { text: "💃 No meu look, com atitude", value: "look" },
+          { text: "🎨 Criando, pintando o mundo", value: "criando" },
+          { text: "📣 Falando alto e sendo ouvida", value: "falando" },
+          { text: "🐾 Com ações e presença marcante", value: "presenca" },
+        ]
+      },
+      {
+        question: "4. Qual animal representa sua alma?",
+        answers: [
+          { text: "🐆 Pantera", value: "pantera" },
+          { text: "🐕 Cachorro Caramelo", value: "caramelo" },
+          { text: "🦜 Arara", value: "arara" },
+          { text: "🐆 Onça-pintada", value: "onca" },
+        ]
+      },
+      {
+        question: "5. Qual seu cantor ou banda favorito?",
+        answers: [
+          { text: "Anitta", value: "anitta" },
+          { text: "Liniker", value: "liniker" },
+          { text: "Gilberto Gil", value: "gil" },
+          { text: "Pabllo Vittar", value: "pabllo" },
+        ]
+      }
+    ];
+
+    let currentQuestionIndex = 0;
+    const userAnswers = [];
+
+    quizButton.addEventListener('click', () => {
+      quizPopup.style.display = 'block';
+      currentQuestionIndex = 0;
+      userAnswers.length = 0;
+      resultDiv.innerHTML = '';
+      showQuestion();
+    });
+
+    closeQuiz.addEventListener('click', () => {
+      quizPopup.style.display = 'none';
+      resetQuiz();
+    });
+
+    function resetQuiz() {
+      cardsContainer.innerHTML = '';
+      questionTitle.textContent = '';
+      userAnswers.length = 0;
+      currentQuestionIndex = 0;
+      resultDiv.innerHTML = '';
+    }
+
+    // Cria as cartas para a pergunta atual
+    function showQuestion() {
+      const q = questions[currentQuestionIndex];
+      questionTitle.textContent = q.question;
+      cardsContainer.innerHTML = '';
+
+      q.answers.forEach((ans, idx) => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.setAttribute('data-value', ans.value);
+
+        const cardInner = document.createElement('div');
+        cardInner.className = 'card-inner';
+
+        const front = document.createElement('div');
+        front.className = 'card-face front';
+        front.textContent = ans.text;
+
+        const back = document.createElement('div');
+        back.className = 'card-face back';
+        back.innerHTML = <div class="emoji">🔮</div>Selecionado!;
+
+        cardInner.appendChild(front);
+        cardInner.appendChild(back);
+        card.appendChild(cardInner);
+
+        card.addEventListener('click', () => {
+          if (card.classList.contains('flipped')) return; // Não clicar duas vezes
+          card.classList.add('flipped');
+          userAnswers.push(ans.value);
+
+          // Aguardar um pouco e ir para próxima pergunta
+          setTimeout(() => {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < questions.length) {
+              showQuestion();
+            } else {
+              showResult();
+            }
+          }, 1200);
+        });
+
+        cardsContainer.appendChild(card);
+      });
+    }
+
+    function showResult() {
+      questionTitle.textContent = "✨ Resultado do seu estilo";
+      cardsContainer.innerHTML = '';
+
+      // Pega as respostas para análise (userAnswers array)
+      // Exemplo simples de resultado baseado nas respostas:
+      // (pode ajustar e personalizar muito mais depois)
+
+      let estilo = "Whimsigothic";
+      let link = "https://pantterias.catalog.yampi.io/whimsigothic";
+
+      const [r1, r2, r3, r4, r5] = userAnswers;
+
+      if (r1 === 'furacao' && r2 === 'brilhar') {
+        estilo = "Y2K"; link = "https://pantterias.catalog.yampi.io/y2k";
+      } else if (r1 === 'doce' && r2 === 'encantar') {
+        estilo = "Soft Girl"; link = "https://pantterias.catalog.yampi.io/soft-girl";
+      } else if (r3 === 'falando' && r2 === 'livre') {
+        estilo = "Streetwear"; link = "https://pantterias.catalog.yampi.io/streetwear";
+      } else if (r1 === 'doce' && r2 === 'brilhar') {
+        estilo = "Coquette"; link = "https://pantterias.catalog.yampi.io/coquette";
+      } else if (r2 === 'livre' && r3 === 'look') {
+        estilo = "Latina Fairy"; link = "https://pantterias.catalog.yampi.io/latina-fairy";
+      } else if (r1 === 'silenciosa' && r2 === 'protecao') {
+        estilo = "Old Money"; link = "https://pantterias.catalog.yampi.io/old-money";
+      } else if (r3 === 'falando' && r2 === 'encantar') {
+        estilo = "Paty Girl"; link = "https://pantterias.catalog.yampi.io/paty-girl";
+      } else if (r1 === 'misteriosa' && r2 === 'protecao') {
+        estilo = "Dark Feminine"; link = "https://pantterias.catalog.yampi.io/dark-feminine";
+      } else if (r2 === 'livre' && r3 === 'presenca') {
+        estilo = "Cowgirl"; link = "https://pantterias.catalog.yampi.io/cowgirl";
+      } else if (r3 === 'criando' && r2 === 'protecao') {
+        estilo = "Vintage"; link = "https://pantterias.catalog.yampi.io/vintage";
+      } else if (r4 === 'pantera' && r5 === 'anitta') {
+        estilo = "Tropical Pantera"; link = "https://pantterias.catalog.yampi.io/tropical-pantera";
+      }
+
+      resultDiv.innerHTML = ✨ Seu estilo é <strong>${estilo}</strong>!<br><a href="${link}" target="_blank">Ver estilo na loja</a>;
+    }
+  </script>
+</body>
+</html>
+
+
