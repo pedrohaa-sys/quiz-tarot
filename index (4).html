@@ -39,6 +39,10 @@
       padding: 20px 15px 30px 15px;
       z-index: 10000;
     }
+    .quiz-container {
+      max-width: 400px;
+      margin: 0 auto;
+    }
     #closeQuiz {
       float: right;
       cursor: pointer;
@@ -67,23 +71,17 @@
       box-sizing: border-box;
     }
     .card {
-  width: calc(50% - 12px);
-  max-width: 200px;
-  height: 160px;
-  perspective: 1000px;
-  cursor: pointer;
-  border-radius: 18px;
-  box-shadow: 0 8px 18px rgba(0,0,0,0.15);
-  position: relative;
-  box-sizing: border-box;
-}
-
-@media (max-width: 500px) {
-  .card {
-    width: 100%;
-    max-width: 100%;
-  }
-}
+      flex: 1 1 calc(45% - 12px);
+      min-width: 160px;
+      max-width: 200px;
+      height: 160px;
+      perspective: 1000px;
+      cursor: pointer;
+      border-radius: 18px;
+      box-shadow: 0 8px 18px rgba(0,0,0,0.15);
+      position: relative;
+      box-sizing: border-box;
+    }
     .card-inner {
       position: relative;
       width: 100%;
@@ -159,11 +157,13 @@
 
   <div id="quizPopup">
     <button id="closeQuiz" title="Fechar quiz">✖</button>
-    <h2 id="questionTitle">Pergunta</h2>
-    <div class="cards-container" id="cardsContainer">
-      <!-- Cartas geradas via JS -->
+    <div class="quiz-container">
+      <h2 id="questionTitle">Pergunta</h2>
+      <div class="cards-container" id="cardsContainer">
+        <!-- Cartas geradas via JS -->
+      </div>
+      <div id="result"></div>
     </div>
-    <div id="result"></div>
   </div>
 
   <script>
@@ -174,7 +174,6 @@
     const cardsContainer = document.getElementById('cardsContainer');
     const resultDiv = document.getElementById('result');
 
-    // Perguntas + respostas com emojis e valores
     const questions = [
       {
         question: "1. Qual sua Essência?",
@@ -247,7 +246,6 @@
       resultDiv.innerHTML = '';
     }
 
-    // Cria as cartas para a pergunta atual
     function showQuestion() {
       const q = questions[currentQuestionIndex];
       questionTitle.textContent = q.question;
@@ -274,11 +272,10 @@
         card.appendChild(cardInner);
 
         card.addEventListener('click', () => {
-          if (card.classList.contains('flipped')) return; // Não clicar duas vezes
+          if (card.classList.contains('flipped')) return;
           card.classList.add('flipped');
           userAnswers.push(ans.value);
 
-          // Aguardar um pouco e ir para próxima pergunta
           setTimeout(() => {
             currentQuestionIndex++;
             if (currentQuestionIndex < questions.length) {
@@ -296,10 +293,6 @@
     function showResult() {
       questionTitle.textContent = "✨ Resultado do seu estilo";
       cardsContainer.innerHTML = '';
-
-      // Pega as respostas para análise (userAnswers array)
-      // Exemplo simples de resultado baseado nas respostas:
-      // (pode ajustar e personalizar muito mais depois)
 
       let estilo = "Whimsigothic";
       let link = "https://pantterias.catalog.yampi.io/whimsigothic";
